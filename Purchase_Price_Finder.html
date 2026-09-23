@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="hi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Price Finder">
+<title>Purchase Price Finder</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#f5f6f8;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#111}
+.wrap{max-width:600px;margin:auto;padding:18px}
+h1{font-size:28px;margin:8px 0 20px}
+.card{background:white;border-radius:18px;padding:18px;margin-bottom:14px;box-shadow:0 2px 10px #00000012}
+label{display:block;font-weight:600;margin:8px 0}
+input{width:100%;padding:15px;border:1px solid #ddd;border-radius:12px;font-size:18px;margin-bottom:12px}
+button{border:0;border-radius:12px;padding:14px 16px;font-size:17px;font-weight:600;background:#111;color:white}
+.search{background:#f0f1f3}
+.row{display:flex;gap:8px}
+.row button{flex:1}
+.item{display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-bottom:1px solid #eee}
+.item:last-child{border-bottom:0}
+.model{font-size:18px;font-weight:700}
+.price{font-size:19px;font-weight:700}
+.small{font-size:14px;color:#666;margin-top:5px}
+.del{background:#eee;color:#111;padding:9px 12px;font-size:14px}
+.empty{text-align:center;color:#777;padding:20px}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>💰 Purchase Price Finder</h1>
+
+<div class="card">
+<label>Model</label>
+<input id="model" placeholder="Example: Y91" autocomplete="off">
+<label>Purchase Price</label>
+<input id="price" type="number" inputmode="numeric" placeholder="Example: 450">
+<button id="save" style="width:100%">Save / Update Price</button>
+<div class="small">Same model dobara save karoge to purani price replace ho jayegi.</div>
+</div>
+
+<div class="card">
+<label>Model Search</label>
+<input id="search" class="search" placeholder="Model search karein..." autocomplete="off">
+<div id="result"></div>
+</div>
+
+<div class="card">
+<div style="font-size:20px;font-weight:700;margin-bottom:5px">Saved Models</div>
+<div id="list"></div>
+</div>
+</div>
+
+<script>
+const KEY="purchasePricesV2";
+let data={};
+
+try{data=JSON.parse(localStorage.getItem(KEY)||"{}")}catch(e){data={}}
+
+function saveData(){localStorage.setItem(KEY,JSON.stringify(data));}
+
+function render(){
+  const q=document.getElementById("search").value.trim().toUpperCase();
+  const keys=Object.keys(data).sort();
+  const filtered=keys.filter(k=>k.includes(q));
+  const list=document.getElementById("list");
+  const result=document.getElementById("result");
+
+  if(q){
+    if(data[q]!==undefined){
+      result.innerHTML='<div class="item"><div><div class="model">'+q+'</div><div class="small">Current purchase price</div></div><div class="price">₹'+data[q]+'</div></div>';
+    }else{
+      result.innerHTML='<div class="empty">Model nahi mila</div>';
+    }
+  }else result.innerHTML="";
+
+  if(!filtered.length){
+    list.innerHTML='<div class="empty">Abhi koi model saved nahi hai.</div>';
+  }else{
+    list.innerHTML=filtered.map(k=>`
+      <div class="item">
+        <div><div class="model">${k}</div><div class="price">₹${data[k]}</div></div>
+        <button class="del" onclick="removeModel('${encodeURIComponent(k)}')">Delete</button>
+      </div>`).join("");
+  }
+}
+
+function removeModel(encoded){
+  const k=decodeURIComponent(encoded);
+  if(confirm(k+" delete karna hai?")){
+    delete data[k]; saveData(); render();
+  }
+}
+
+document.getElementById("save").onclick=()=>{
+  const model=document.getElementById("model").value.trim().toUpperCase();
+  const price=document.getElementById("price").value.trim();
+  if(!model || !price){alert("Model aur price dono bhariye.");return;}
+  data[model]=price;
+  saveData();
+  document.getElementById("model").value="";
+  document.getElementById("price").value="";
+  document.getElementById("search").value=model;
+  render();
+  alert(model+" ki price ₹"+price+" save ho gayi.");
+};
+
+document.getElementById("search").addEventListener("input",render);
+render();
+</script>
+</body>
+</html>
