@@ -11,8 +11,19 @@ input,button{width:100%;padding:14px;margin:7px 0;box-sizing:border-box;border-r
 input{border:1px solid #ccc}
 button{border:0;background:#111;color:white;cursor:pointer;font-weight:bold;-webkit-appearance:none;}
 
-/* नया 100% वर्किंग शेयर बटन */
+/* बटन के अलग-अलग रंग */
 .btn-pdf{background:#28a745 !important; color:white; margin-bottom:12px;}
+.btn-update-all{background:#007aff !important; color:white; margin-top:2px; margin-bottom:12px; padding:10px;}
+
+/* कीमत बढ़ाने वाले सेक्शन का स्टाइल */
+.boost-section {
+  background: #f2f2f7;
+  padding: 12px;
+  border-radius: 12px;
+  margin: 10px 0;
+  border: 1px dashed #007aff;
+}
+.boost-title { font-size: 14px; font-weight: bold; color: #007aff; text-align: center; margin-bottom: 5px; }
 
 /* 1. मॉडल बॉक्स को छोटा और आमने-सामने करने के लिए CSS */
 .item{
@@ -52,7 +63,14 @@ button{border:0;background:#111;color:white;cursor:pointer;font-weight:bold;-web
 <input id="price" type="number" placeholder="Purchase Price ₹">
 <button onclick="save()">Save / Update</button>
 
-<!-- आईफोन ऐप में 100% काम करने वाला बटन -->
+<!-- 🚀 नया फीचर: एक साथ सबकी कीमत बढ़ाने वाला बॉक्स -->
+<div class="boost-section">
+  <div class="boost-title">📈 सभी मॉडल्स की कीमत एक साथ बढ़ाएं</div>
+  <input id="bulkAmount" type="number" placeholder="कितने रुपये बढ़ाना है? (जैसे: 10 या 20)" style="padding:10px; margin:5px 0;">
+  <button class="btn-update-all" onclick="increaseAllPrices()">Update All Prices (+)</button>
+</div>
+
+<!-- आईफोन ऐप में 100% काम करने वाला शेयर बटन -->
 <button class="btn-pdf" onclick="shareFullList()">Share Full List (WhatsApp)</button>
 
 <input id="search" placeholder="Search Model" oninput="show()">
@@ -94,20 +112,34 @@ function del(m){
  show();
 }
 
-// 🔥 आईफोन ऐप के लिए स्पेशल फंक्शन (यह बिना अटके तुरंत व्हाट्सऐप खोलेगा)
+// 🔥 जादुई फंक्शन: एक साथ सबमें ₹10 या ₹20 जोड़ने के लिए
+function increaseAllPrices() {
+ let amount = parseInt(document.getElementById("bulkAmount").value);
+ if(!amount || amount <= 0) return alert("कृपया सही रुपये लिखें (जैसे 10 या 20)");
+ 
+ // एक-एक करके सभी मॉडल्स की कीमत में पैसे जोड़ना
+ Object.keys(data).forEach(m => {
+  let currentPrice = parseInt(data[m]) || 0;
+  data[m] = currentPrice + amount; // पुरानी कीमत में नया अमाउंट जोड़ दिया
+ });
+ 
+ // डेटाबेस में सेव करना और स्क्रीन अपडेट करना
+ localStorage.setItem("prices", JSON.stringify(data));
+ document.getElementById("bulkAmount").value = ""; // बॉक्स खाली करना
+ show();
+ alert(`सभी मॉडल्स की कीमत में ₹${amount} बढ़ा दिए गए हैं!`);
+}
+
 function shareFullList() {
  if(Object.keys(data).length === 0) return alert("लिस्ट में कोई मॉडल नहीं है!");
  
- // पूरी लिस्ट को एक साफ़-सुथरे और सुंदर टेक्स्ट फ़ॉर्मेट में तैयार करना
  let textMessage = "📝 *Purchase Price List* 📝\n\n";
  Object.keys(data).forEach(m => {
   textMessage += `▪️ *${m}* : ₹${data[m]}\n`;
  });
  
- // व्हाट्सऐप पर भेजने का सीधा लिंक (आईफोन ऐप के लिए सबसे बेस्ट)
  let whatsappUrl = `https://whatsapp.com{encodeURIComponent(textMessage)}`;
  
- // आईफोन के इन-बिल्ट शेयर सिस्टम को आजमाना, नहीं तो डायरेक्ट व्हाट्सऐप ओपन करना
  if (navigator.share) {
   navigator.share({
    text: textMessage
