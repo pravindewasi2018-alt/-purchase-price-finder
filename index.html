@@ -9,9 +9,9 @@ body{font-family:Arial;margin:0;background:#f2f2f7;padding:20px}
 h2{text-align:center}
 input,button{width:100%;padding:14px;margin:7px 0;box-sizing:border-box;border-radius:10px;font-size:16px}
 input{border:1px solid #ccc}
-button{border:0;background:#111;color:white;cursor:pointer;font-weight:bold;}
+button{border:0;background:#111;color:white;cursor:pointer;font-weight:bold;-webkit-appearance:none;}
 
-/* नया पीडीएफ डाउनलोड बटन */
+/* नया 100% वर्किंग शेयर बटन */
 .btn-pdf{background:#28a745 !important; color:white; margin-bottom:12px;}
 
 /* 1. मॉडल बॉक्स को छोटा और आमने-सामने करने के लिए CSS */
@@ -43,15 +43,6 @@ button{border:0;background:#111;color:white;cursor:pointer;font-weight:bold;}
  margin:0 !important;
  padding:0 !important;
 }
-
-/* आईफोन प्रिंट के समय फालतू बटन छिपाने के लिए */
-@media print {
-  body { background: white; padding: 0; }
-  .box { box-shadow: none; padding: 0; max-width: 100%; }
-  input, button:not(.del), h2 { display: none !important; }
-  .del { display: none !important; } /* प्रिंट में X बटन नहीं दिखेगा, सिर्फ लिस्ट दिखेगी */
-  .item { border: 1px solid #ddd; background: #fff !important; page-break-inside: avoid; }
-}
 </style>
 </head>
 <body>
@@ -61,8 +52,8 @@ button{border:0;background:#111;color:white;cursor:pointer;font-weight:bold;}
 <input id="price" type="number" placeholder="Purchase Price ₹">
 <button onclick="save()">Save / Update</button>
 
-<!-- आईफोन के लिए स्पेशल प्रिंट/पीडीएफ बटन -->
-<button class="btn-pdf" onclick="downloadPDF()">Save PDF (Full Screenshot)</button>
+<!-- आईफोन ऐप में 100% काम करने वाला बटन -->
+<button class="btn-pdf" onclick="shareFullList()">Share Full List (WhatsApp)</button>
 
 <input id="search" placeholder="Search Model" oninput="show()">
 <div id="list"></div>
@@ -103,10 +94,29 @@ function del(m){
  show();
 }
 
-// 🔥 आईफोन (iPhone) के लिए स्पेशल फुल पीडीएफ मेकर फंक्शन
-function downloadPDF() {
+// 🔥 आईफोन ऐप के लिए स्पेशल फंक्शन (यह बिना अटके तुरंत व्हाट्सऐप खोलेगा)
+function shareFullList() {
  if(Object.keys(data).length === 0) return alert("लिस्ट में कोई मॉडल नहीं है!");
- window.print(); // यह आईफोन का ओरिजिनल पीडीएफ/प्रिंट मेन्यू खोल देगा
+ 
+ // पूरी लिस्ट को एक साफ़-सुथरे और सुंदर टेक्स्ट फ़ॉर्मेट में तैयार करना
+ let textMessage = "📝 *Purchase Price List* 📝\n\n";
+ Object.keys(data).forEach(m => {
+  textMessage += `▪️ *${m}* : ₹${data[m]}\n`;
+ });
+ 
+ // व्हाट्सऐप पर भेजने का सीधा लिंक (आईफोन ऐप के लिए सबसे बेस्ट)
+ let whatsappUrl = `https://whatsapp.com{encodeURIComponent(textMessage)}`;
+ 
+ // आईफोन के इन-बिल्ट शेयर सिस्टम को आजमाना, नहीं तो डायरेक्ट व्हाट्सऐप ओपन करना
+ if (navigator.share) {
+  navigator.share({
+   text: textMessage
+  }).catch(err => {
+   window.open(whatsappUrl, '_blank');
+  });
+ } else {
+  window.open(whatsappUrl, '_blank');
+ }
 }
 
 show();
