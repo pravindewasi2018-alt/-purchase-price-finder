@@ -4,16 +4,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Purchase Price Finder</title>
     <style>
-        body{font-family:Arial;margin:0;background:#f2f2f2}
-        .box{max-width:500px;margin:auto;background:white;padding:20px}
-        h2{text-align:center}
-        input,button,a{width:100%;padding:14px;margin:7px 0;box-sizing:border-box;display:block;text-align:center}
-        input{border:1px solid #ccc}
-        button{border:0;background:#111;color:white;font-weight:bold;cursor:pointer}
-        .item{padding:12px;margin-top:8px;background:#f9f9f9;border:1px solid #eee}
-        .price{font-weight:bold;font-size:18px}
-        .del{background:#d00;margin-top:5px;width:100%}
-        .btn-share{background:#25D366;color:white;font-size:16px;font-weight:bold;margin-top:15px;text-decoration:none;border-radius:4px}
+        body{font-family:Arial, sans-serif;margin:0;background:#f2f2f2;padding:10px;}
+        .box{max-width:500px;margin:auto;background:white;padding:20px;border-radius:8px;box-shadow:0 2px 5px rgba(0,0,0,0.1);}
+        h2{text-align:center;color:#333;}
+        input,button{width:100%;padding:14px;margin:7px 0;box-sizing:border-box;display:block;}
+        input{border:1px solid #ccc;border-radius:4px;font-size:16px;}
+        button{border:0;background:#111;color:white;font-weight:bold;border-radius:4px;cursor:pointer;font-size:16px;}
+        .item{padding:12px;margin-top:8px;background:#f9f9f9;border:1px solid #eee;border-radius:4px;}
+        .price{font-weight:bold;font-size:18px;color:#111;}
+        .del{background:#d00;margin-top:8px;width:100%;padding:8px;}
+        .btn-share{background:#25D366;color:white;font-size:16px;font-weight:bold;margin-top:15px;border:none;border-radius:4px;width:100%;padding:14px;cursor:pointer;}
     </style>
 </head>
 <body>
@@ -26,8 +26,8 @@
     <input id="search" placeholder="Search Model" onkeyup="searchModel()">
     <div id="list"></div>
     
-    <!-- बटन को डायरेक्ट लिंक (Anchor Tag) में बदल दिया है ताकि iPhone/Safari में भी 100% काम करे -->
-    <a id="whatsappBtn" class="btn-share" href="#" onclick="shareOnWhatsApp(event)">🟢 पूरी लिस्ट WhatsApp पर भेजें</a>
+    <!-- यहाँ साधारण बटन का इस्तेमाल किया गया है जो आईफोन में कभी ब्लॉक नहीं होता -->
+    <button class="btn-share" onclick="shareOnWhatsApp()">🟢 पूरी लिस्ट WhatsApp पर भेजें</button>
 </div>
 
 <script>
@@ -87,11 +87,10 @@ function searchModel(){
     document.getElementById("list").innerHTML = h;
 }
 
-// नया फिक्स्ड फंक्शन जो सीधे WhatsApp ऐप को ओपन करेगा
-function shareOnWhatsApp(e) {
+// यह नया फंक्शन बिना किसी एरर के सीधा यूनिवर्सल लिंक खोलेगा
+function shareOnWhatsApp() {
     if (list.length === 0) {
-        alert("आपकी लिस्ट खाली है!");
-        e.preventDefault();
+        alert("आपकी लिस्ट खाली है! पहले कुछ आइटम जोड़ें।");
         return;
     }
 
@@ -109,12 +108,11 @@ function shareOnWhatsApp(e) {
     message += "💰 *कुल टोटल:* ₹" + total.toLocaleString('en-IN') + "\n\n";
     message += "_यह लिस्ट परचेज प्राइस फाइंडर ऐप से शेयर की गई है।_";
 
-    // सीधे href बदल कर ओपन करने का तरीका (Iphone/Safari फ्रेंडली)
-    var whatsappUrl = "whatsapp://send?text=" + encodeURIComponent(message);
+    // यूनिवर्सल वेब लिंक जो हर जगह (Android, iOS, Web) काम करता है
+    var whatsappUrl = "https://whatsapp.com" + encodeURIComponent(message);
     
-    // अगर नॉर्मल ब्राउज़र है तो वेब लिंक पर फॉल बैक करें
-    var btn = document.getElementById("whatsappBtn");
-    btn.href = whatsappUrl;
+    // आईफोन सफारी के लिए सबसे सुरक्षित तरीका
+    window.location.href = whatsappUrl;
 }
 </script>
 
