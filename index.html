@@ -27,6 +27,19 @@ button{border:0;background:#111;color:white;cursor:pointer;font-weight:bold;-web
 .boost-title { font-size: 14px; font-weight: bold; color: #007aff; text-align: center; margin-bottom: 5px; }
 .btn-row { display: flex; justify-content: space-between; }
 
+/* 🏢 कंपनी हेडिंग का स्टाइल */
+.company-header {
+  background: #007aff;
+  color: white;
+  padding: 6px 12px;
+  font-size: 14px;
+  font-weight: bold;
+  border-radius: 6px;
+  margin-top: 15px;
+  margin-bottom: 5px;
+  text-transform: uppercase;
+}
+
 /* 1. मॉडल बॉक्स को छोटा करने के लिए CSS */
 .item{
  display:flex !important;
@@ -61,11 +74,11 @@ button{border:0;background:#111;color:white;cursor:pointer;font-weight:bold;-web
 <body>
 <div class="box">
 <h2>Purchase Price Finder</h2>
-<input id="model" placeholder="Model">
+<input id="model" placeholder="Model (जैसे: OPPO A78, VIVO Y200)">
 <input id="price" type="number" placeholder="Purchase Price ₹">
 <button onclick="save()">Save / Update</button>
 
-<!-- 📈/📉 कीमत बढ़ाने और घटाने वाला डबल बटन सेक्शन -->
+<!-- 📈/📉 कीमत बढ़ाने और घटाने वाला सेक्शन -->
 <div class="boost-section">
   <div class="boost-title">📈/📉 सभी कीमतें एक साथ बदलें</div>
   <input id="bulkAmount" type="number" placeholder="कितने रुपये बदलना है? (जैसे: 10 या 20)">
@@ -95,19 +108,47 @@ function save(){
  show();
 }
 
+// 🏢 कंपनी का नाम पता करने का फंक्शन (जैसे OPPO A57 में से OPPO अलग करेगा)
+function getCompany(modelName) {
+  let firstWord = modelName.split(" ")[0];
+  return firstWord || "OTHER";
+}
+
+// 🔥 नया जादुई शो फंक्शन: ऑटोमैटिक कंपनी वाइज ग्रुप और सॉर्ट करेगा
 function show(){
  let q=document.getElementById("search").value.trim().toUpperCase();
- let out="";
- Object.keys(data).filter(m=>m.includes(q)).forEach(m=>{
-  out+=`<div class="item">
-   <div class="item-details">
-    <b class="model-text">${m}</b>
-    <span class="price">₹${data[m]}</span>
-   </div>
-   <button class="del" onclick="del('${m}')">X</button>
-  </div>`;
+ let out = "";
+ 
+ // 1. पहले फ़िल्टर करें जो सर्च बॉक्स से मैच खाते हैं
+ let filteredModels = Object.keys(data).filter(m => m.includes(q));
+ 
+ // 2. मॉडल्स को कंपनी के हिसाब से ग्रुप (इकट्ठा) करें
+ let groups = {};
+ filteredModels.forEach(m => {
+   let comp = getCompany(m);
+   if (!groups[comp]) groups[comp] = [];
+   groups[comp].push(m);
  });
- document.getElementById("list").innerHTML=out;
+ 
+ // 3. कंपनियों के नाम को A to Z क्रम में सजाएं (OPPO पहले, VIVO बाद में)
+ let sortedCompanies = Object.keys(groups).sort();
+ 
+ // 4. स्क्रीन पर सुंदर तरीके से कंपनी हेडिंग के साथ दिखाना
+ sortedCompanies.forEach(comp => {
+   out += `<div class="company-header">${comp}</div>`; // कंपनी का नाम जैसे OPPO, VIVO
+   
+   groups[comp].forEach(m => {
+     out += `<div class="item">
+      <div class="item-details">
+       <b class="model-text">${m}</b>
+       <span class="price">₹${data[m]}</span>
+      </div>
+      <button class="del" onclick="del('${m}')">X</button>
+     </div>`;
+   });
+ });
+ 
+ document.getElementById("list").innerHTML = out;
 }
 
 function del(m){
@@ -116,7 +157,6 @@ function del(m){
  show();
 }
 
-// 🔥 नया जादुई फंक्शन: एक ही फंक्शन से प्लस और माइनस दोनों होगा
 function updatePrices(type) {
  let inputVal = document.getElementById("bulkAmount").value.trim();
  if(!inputVal) return alert("कृपया सही रुपये लिखें (जैसे 10 या 20)");
@@ -127,9 +167,9 @@ function updatePrices(type) {
  Object.keys(data).forEach(m => {
   let currentPrice = Number(data[m]) || 0; 
   if(type === 'plus') {
-    data[m] = currentPrice + amount; // कीमत बढ़ाएगा
+    data[m] = currentPrice + amount;
   } else {
-    data[m] = currentPrice - amount; // कीमत घटाएगा
+    data[m] = currentPrice - amount;
   }
  });
  
@@ -143,8 +183,22 @@ function shareFullList() {
  if(Object.keys(data).length === 0) return alert("लिस्ट में कोई MODEL नहीं है!");
  
  let textMessage = "📝 *Purchase Price List* 📝\n\n";
- Object.keys(data).forEach(m => {
-  textMessage += `▪️ *${m}* : ₹${data[m]}\n`;
+ 
+ // व्हाट्सऐप पर भी कंपनी वाइज ग्रुप होकर ही मैसेज जाएगा!
+ let filteredModels = Object.keys(data);
+ let groups = {};
+ filteredModels.forEach(m => {
+   let comp = getCompany(m);
+   if (!groups[comp]) groups[comp] = [];
+   groups[comp].push(m);
+ });
+ 
+ Object.keys(groups).sort().forEach(comp => {
+   textMessage += `🔹 *${comp}* 🔹\n`; // कंपनी हेडिंग
+   groups[comp].forEach(m => {
+     textMessage += `▪️ ${m} : ₹${data[m]}\n`;
+   });
+   textMessage += `\n`;
  });
  
  let whatsappUrl = `https://whatsapp.com{encodeURIComponent(textMessage)}`;
