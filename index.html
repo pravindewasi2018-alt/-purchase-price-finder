@@ -11,11 +11,11 @@ input,button{width:100%;padding:14px;margin:7px 0;box-sizing:border-box;border-r
 input{border:1px solid #ccc}
 button{border:0;background:#111;color:white;cursor:pointer;font-weight:bold;-webkit-appearance:none;}
 
-/* बटन के अलग-अलग रंग */
+/* बटन के आकर्षक रंग */
 .btn-pdf{background:#28a745 !important; color:white; margin-bottom:12px;}
 .btn-update-all{background:#007aff !important; color:white; margin-top:2px; margin-bottom:12px; padding:10px;}
 
-/* कीमत बढ़ाने वाले सेक्शन का स्टाइल */
+/* नया बॉक्स डिज़ाइन जिसमें आप रुपये लिखेंगे */
 .boost-section {
   background: #f2f2f7;
   padding: 12px;
@@ -25,7 +25,7 @@ button{border:0;background:#111;color:white;cursor:pointer;font-weight:bold;-web
 }
 .boost-title { font-size: 14px; font-weight: bold; color: #007aff; text-align: center; margin-bottom: 5px; }
 
-/* 1. मॉडल बॉक्स को छोटा और आमने-सामने करने के लिए CSS */
+/* मॉडल लिस्ट को छोटा करने के लिए CSS */
 .item{
  display:flex !important;
  justify-content:space-between !important;
@@ -39,7 +39,7 @@ button{border:0;background:#111;color:white;cursor:pointer;font-weight:bold;-web
 .model-text{font-size:15px; color:#111;}
 .price{font-weight:bold; font-size:14px; color:#333; margin-top:2px;}
 
-/* 2. छोटा और ठीक आगे लगा हुआ गोल 'X' डिलीट बटन */
+/* गोल छोटा 'X' डिलीट बटन */
 .del{
  background:#d00 !important;
  color:white !important;
@@ -63,14 +63,13 @@ button{border:0;background:#111;color:white;cursor:pointer;font-weight:bold;-web
 <input id="price" type="number" placeholder="Purchase Price ₹">
 <button onclick="save()">Save / Update</button>
 
-<!-- 🚀 नया फीचर: एक साथ सबकी कीमत बढ़ाने वाला बॉक्स -->
+<!-- 📈 यहाँ आप 10 लिखेंगे तो सबमें 10 रुपये जुड़ जाएंगे -->
 <div class="boost-section">
   <div class="boost-title">📈 सभी मॉडल्स की कीमत एक साथ बढ़ाएं</div>
-  <input id="bulkAmount" type="number" placeholder="कितने रुपये बढ़ाना है? (जैसे: 10 या 20)" style="padding:10px; margin:5px 0;">
+  <input id="bulkAmount" type="number" placeholder="कितने रुपये बढ़ाना है? (जैसे: 10 या 20)">
   <button class="btn-update-all" onclick="increaseAllPrices()">Update All Prices (+)</button>
 </div>
 
-<!-- आईफोन ऐप में 100% काम करने वाला शेयर बटन -->
 <button class="btn-pdf" onclick="shareFullList()">Share Full List (WhatsApp)</button>
 
 <input id="search" placeholder="Search Model" oninput="show()">
@@ -112,26 +111,28 @@ function del(m){
  show();
 }
 
-// 🔥 जादुई फंक्शन: एक साथ सबमें ₹10 या ₹20 जोड़ने के लिए
+// 🔥 यह फ़ंक्शन टेक्स्ट को असली नंबर में बदलकर जोड़ता है (500 + 10 = 510 करेगा)
 function increaseAllPrices() {
- let amount = parseInt(document.getElementById("bulkAmount").value);
- if(!amount || amount <= 0) return alert("कृपया सही रुपये लिखें (जैसे 10 या 20)");
+ let inputVal = document.getElementById("bulkAmount").value.trim();
+ if(!inputVal) return alert("कृपया सही रुपये लिखें (जैसे 10 या 20)");
  
- // एक-एक करके सभी मॉडल्स की कीमत में पैसे जोड़ना
+ let amount = Number(inputVal);
+ if(isNaN(amount) || amount <= 0) return alert("कृपया सही नंबर डालें");
+ 
+ // पुराने डेटा को नंबर (Math Number) में बदलकर प्लस करना
  Object.keys(data).forEach(m => {
-  let currentPrice = parseInt(data[m]) || 0;
-  data[m] = currentPrice + amount; // पुरानी कीमत में नया अमाउंट जोड़ दिया
+  let currentPrice = Number(data[m]) || 0; 
+  data[m] = currentPrice + amount; // यहाँ बिल्कुल सही जोड़ होगा
  });
  
- // डेटाबेस में सेव करना और स्क्रीन अपडेट करना
  localStorage.setItem("prices", JSON.stringify(data));
- document.getElementById("bulkAmount").value = ""; // बॉक्स खाली करना
+ document.getElementById("bulkAmount").value = ""; 
  show();
  alert(`सभी मॉडल्स की कीमत में ₹${amount} बढ़ा दिए गए हैं!`);
 }
 
 function shareFullList() {
- if(Object.keys(data).length === 0) return alert("लिस्ट में कोई मॉडल नहीं है!");
+ if(Object.keys(data).length === 0) return alert("लिस्ट में कोई MODEL नहीं है!");
  
  let textMessage = "📝 *Purchase Price List* 📝\n\n";
  Object.keys(data).forEach(m => {
@@ -141,9 +142,7 @@ function shareFullList() {
  let whatsappUrl = `https://whatsapp.com{encodeURIComponent(textMessage)}`;
  
  if (navigator.share) {
-  navigator.share({
-   text: textMessage
-  }).catch(err => {
+  navigator.share({ text: textMessage }).catch(err => {
    window.open(whatsappUrl, '_blank');
   });
  } else {
