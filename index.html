@@ -13,9 +13,10 @@ button{border:0;background:#111;color:white;cursor:pointer;font-weight:bold;-web
 
 /* बटन के आकर्षक रंग */
 .btn-pdf{background:#28a745 !important; color:white; margin-bottom:12px;}
-.btn-update-all{background:#007aff !important; color:white; margin-top:2px; margin-bottom:12px; padding:10px;}
+.btn-plus{background:#007aff !important; color:white; width:48%; margin-right:2%; display:inline-block; padding:12px;}
+.btn-minus{background:#ff9500 !important; color:white; width:48%; display:inline-block; padding:12px;}
 
-/* नया बॉक्स डिज़ाइन जिसमें आप रुपये लिखेंगे */
+/* बूस्टर बॉक्स डिज़ाइन */
 .boost-section {
   background: #f2f2f7;
   padding: 12px;
@@ -24,8 +25,9 @@ button{border:0;background:#111;color:white;cursor:pointer;font-weight:bold;-web
   border: 1px dashed #007aff;
 }
 .boost-title { font-size: 14px; font-weight: bold; color: #007aff; text-align: center; margin-bottom: 5px; }
+.btn-row { display: flex; justify-content: space-between; }
 
-/* मॉडल लिस्ट को छोटा करने के लिए CSS */
+/* 1. मॉडल बॉक्स को छोटा करने के लिए CSS */
 .item{
  display:flex !important;
  justify-content:space-between !important;
@@ -39,7 +41,7 @@ button{border:0;background:#111;color:white;cursor:pointer;font-weight:bold;-web
 .model-text{font-size:15px; color:#111;}
 .price{font-weight:bold; font-size:14px; color:#333; margin-top:2px;}
 
-/* गोल छोटा 'X' डिलीट बटन */
+/* 2. गोल छोटा 'X' डिलीट बटन */
 .del{
  background:#d00 !important;
  color:white !important;
@@ -63,11 +65,14 @@ button{border:0;background:#111;color:white;cursor:pointer;font-weight:bold;-web
 <input id="price" type="number" placeholder="Purchase Price ₹">
 <button onclick="save()">Save / Update</button>
 
-<!-- 📈 यहाँ आप 10 लिखेंगे तो सबमें 10 रुपये जुड़ जाएंगे -->
+<!-- 📈/📉 कीमत बढ़ाने और घटाने वाला डबल बटन सेक्शन -->
 <div class="boost-section">
-  <div class="boost-title">📈 सभी मॉडल्स की कीमत एक साथ बढ़ाएं</div>
-  <input id="bulkAmount" type="number" placeholder="कितने रुपये बढ़ाना है? (जैसे: 10 या 20)">
-  <button class="btn-update-all" onclick="increaseAllPrices()">Update All Prices (+)</button>
+  <div class="boost-title">📈/📉 सभी कीमतें एक साथ बदलें</div>
+  <input id="bulkAmount" type="number" placeholder="कितने रुपये बदलना है? (जैसे: 10 या 20)">
+  <div class="btn-row">
+    <button class="btn-plus" onclick="updatePrices('plus')">Update (+)</button>
+    <button class="btn-minus" onclick="updatePrices('minus')">Update (-)</button>
+  </div>
 </div>
 
 <button class="btn-pdf" onclick="shareFullList()">Share Full List (WhatsApp)</button>
@@ -111,24 +116,27 @@ function del(m){
  show();
 }
 
-// 🔥 यह फ़ंक्शन टेक्स्ट को असली नंबर में बदलकर जोड़ता है (500 + 10 = 510 करेगा)
-function increaseAllPrices() {
+// 🔥 नया जादुई फंक्शन: एक ही फंक्शन से प्लस और माइनस दोनों होगा
+function updatePrices(type) {
  let inputVal = document.getElementById("bulkAmount").value.trim();
  if(!inputVal) return alert("कृपया सही रुपये लिखें (जैसे 10 या 20)");
  
  let amount = Number(inputVal);
  if(isNaN(amount) || amount <= 0) return alert("कृपया सही नंबर डालें");
  
- // पुराने डेटा को नंबर (Math Number) में बदलकर प्लस करना
  Object.keys(data).forEach(m => {
   let currentPrice = Number(data[m]) || 0; 
-  data[m] = currentPrice + amount; // यहाँ बिल्कुल सही जोड़ होगा
+  if(type === 'plus') {
+    data[m] = currentPrice + amount; // कीमत बढ़ाएगा
+  } else {
+    data[m] = currentPrice - amount; // कीमत घटाएगा
+  }
  });
  
  localStorage.setItem("prices", JSON.stringify(data));
  document.getElementById("bulkAmount").value = ""; 
  show();
- alert(`सभी मॉडल्स की कीमत में ₹${amount} बढ़ा दिए गए हैं!`);
+ alert(`सभी मॉडल्स की कीमत में बदलाव कर दिया गया है!`);
 }
 
 function shareFullList() {
