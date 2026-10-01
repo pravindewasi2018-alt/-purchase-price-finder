@@ -27,7 +27,7 @@ button{border:0;background:#111;color:white;cursor:pointer;font-weight:bold;-web
 .boost-title { font-size: 14px; font-weight: bold; color: #007aff; text-align: center; margin-bottom: 5px; }
 .btn-row { display: flex; justify-content: space-between; }
 
-/* 🏢 कंपनियों के नाम की बड़ी और साफ़ हेडिंग */
+/* 🏢 कंपनियों के नाम की सुंदर हेडिंग */
 .company-header {
   background: #007aff;
   color: white;
@@ -38,10 +38,9 @@ button{border:0;background:#111;color:white;cursor:pointer;font-weight:bold;-web
   margin-top: 18px;
   margin-bottom: 6px;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
 }
 
-/* मॉडल बॉक्स जो अब छोटे और आमने-सामने दिखेंगे */
+/* मॉडल बॉक्स */
 .item{
  display:flex !important;
  justify-content:space-between !important;
@@ -55,7 +54,7 @@ button{border:0;background:#111;color:white;cursor:pointer;font-weight:bold;-web
 .model-text{font-size:15px; color:#111;}
 .price{font-weight:bold; font-size:14px; color:#333; margin-top:2px;}
 
-/* गोल छोटा 'X' डिलीट बटन जो ठीक मॉडल के आगे रहेगा */
+/* गोल छोटा 'X' डिलीट बटन */
 .del{
  background:#d00 !important;
  color:white !important;
@@ -75,11 +74,11 @@ button{border:0;background:#111;color:white;cursor:pointer;font-weight:bold;-web
 <body>
 <div class="box">
 <h2>Purchase Price Finder</h2>
-<input id="model" placeholder="Enter Model (e.g. Y12, A78, NOTE 13)">
+<input id="model" placeholder="Model (जैसे: MI 9POWER, VIVO Y12, OPPO A35)">
 <input id="price" type="number" placeholder="Purchase Price ₹">
 <button onclick="save()">Save / Update</button>
 
-<!-- 📈/📉 कीमत बढ़ाने और घटाने वाला सेक्शन -->
+<!-- 📈/📉 कीमत बदलने का सेक्शन -->
 <div class="boost-section">
   <div class="boost-title">📈/📉 सभी कीमतें एक साथ बदलें</div>
   <input id="bulkAmount" type="number" placeholder="कितने रुपये बदलना है? (जैसे: 10 या 20)">
@@ -109,39 +108,21 @@ function save(){
  show();
 }
 
-// 🤖 मॉडल के कोड को पढ़कर कंपनी ऑटो-डिटेक्ट करने वाला सिस्टम
-function autoDetectCompany(modelName) {
+// 🤖 सिर्फ पहला शब्द पढ़कर कंपनी तय करने वाला सबसे आसान सिस्टम
+function getFirstWordCompany(modelName) {
   let name = modelName.toUpperCase().trim();
-  
-  // 1. अगर नाम की शुरुआत में ही कंपनी लिखी है
-  if (name.startsWith("OPPO")) return "OPPO";
-  if (name.startsWith("VIVO")) return "VIVO";
-  if (name.startsWith("SAMSUNG")) return "SAMSUNG";
-  if (name.startsWith("MI") || name.startsWith("REDMI")) return "MI / REDMI";
-  if (name.startsWith("REALME")) return "REALME";
-  if (name.startsWith("ONEPLUS")) return "ONEPLUS";
-  if (name.startsWith("IPHONE") || name.startsWith("APPLE")) return "APPLE IPHONE";
-  if (name.includes("HONOR")) return "HONOR";
+  let words = name.split(" ");
+  let firstWord = words[0]; // नाम का सबसे पहला शब्द
 
-  // 2. 🔍 सिर्फ मॉडल कोड से कंपनी पहचानना
+  // जिन मुख्य कंपनियों को आप ऊपर रखना चाहते हैं
+  let mainCompanies = ["MI", "REDMI", "VIVO", "OPPO", "SAMSUNG", "REALME", "ONEPLUS", "HONOR", "POCO", "IPHONE", "APPLE"];
   
-  // VIVO: Y सीरीज़ (जैसे Y12, Y200), V सीरीज़, T सीरीज़
-  if (/^[YVT]\d/.test(name) || name.includes("VIVO")) return "VIVO";
+  if (mainCompanies.includes(firstWord)) {
+    return firstWord; // अगर पहला शब्द कंपनी है, तो वही हेडिंग बनेगी
+  }
   
-  // MI / REDMI / POCO: Note सीरीज़, Poco, Power सीरीज़, Mi नाम वाले
-  if (name.includes("NOTE") || name.includes("POCO") || name.includes("MI ") || name.includes("POWER")) return "MI / REDMI";
-  
-  // REALME: C सीरीज़ (जैसे C53, C65), Narzo
-  if (/^C\d/.test(name) || name.includes("NARZO") || name.includes("REALME")) return "REALME";
-  
-  // SAMSUNG: Galaxy, S सीरीज़, M सीरीज़, F सीरीज़ (जैसे S24, M34)
-  if (name.includes("GALAXY") || /^[SMF]\d/.test(name) || name.includes("SAMSUNG")) return "SAMSUNG";
-  
-  // OPPO: A सीरीज़ (A78, A58), Reno, F सीरीज़ (जैसे F27)
-  if (/^A\d/.test(name) || name.includes("RENO") || /^F\d/.test(name) || name.includes("OPPO")) return "OPPO";
-
-  // 3. अगर कोई भी नियम मैच न हो तो वह "OTHER MODELS" हेडिंग में जाएगा
-  return "OTHER MODELS";
+  // अगर पहला शब्द कोई नंबर या अनजान कोड है, तो वह सबसे नीचे जाएगा
+  return "Z_OTHER MODELS"; 
 }
 
 function show(){
@@ -150,20 +131,21 @@ function show(){
  
  let filteredModels = Object.keys(data).filter(m => m.includes(q));
  
- // मॉडल्स को कंपनी के हिसाब से इकट्ठा करना
  let groups = {};
  filteredModels.forEach(m => {
-   let comp = autoDetectCompany(m);
+   let comp = getFirstWordCompany(m);
    if (!groups[comp]) groups[comp] = [];
    groups[comp].push(m);
  });
  
- // कंपनियों को A to Z क्रम में सजाना (ताकि MI, OPPO, VIVO लाइन से आएं)
+ // कंपनियों को क्रम में सजाना (ताकि Z_OTHER MODELS अपने आप सबसे नीचे चला जाए)
  let sortedCompanies = Object.keys(groups).sort();
  
- // स्क्रीन पर सुंदर हेडिंग के साथ दिखाना
  sortedCompanies.forEach(comp => {
-   out += `<div class="company-header">${comp}</div>`;
+   // स्क्रीन पर दिखाते समय Z_ हटाकर सुंदर "OTHER MODELS" लिखेंगे
+   let displayHeader = comp === "Z_OTHER MODELS" ? "OTHER MODELS" : comp;
+   
+   out += `<div class="company-header">${displayHeader}</div>`;
    
    groups[comp].forEach(m => {
      out += `<div class="item">
@@ -215,14 +197,14 @@ function shareFullList() {
  let filteredModels = Object.keys(data);
  let groups = {};
  filteredModels.forEach(m => {
-   let comp = autoDetectCompany(m);
+   let comp = getFirstWordCompany(m);
    if (!groups[comp]) groups[comp] = [];
    groups[comp].push(m);
  });
  
- // व्हाट्सऐप मैसेज में भी कंपनी वाइज हेडिंग के साथ जाएगा
  Object.keys(groups).sort().forEach(comp => {
-   textMessage += `🔹 *${comp}* 🔹\n`;
+   let displayHeader = comp === "Z_OTHER MODELS" ? "OTHER MODELS" : comp;
+   textMessage += `🔹 *${displayHeader}* 🔹\n`;
    groups[comp].forEach(m => {
      textMessage += `▪️ ${m} : ₹${data[m]}\n`;
    });
