@@ -3,16 +3,48 @@
 <head>
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Purchase Price Finder</title>
+<!-- अनलिमिटेड मॉडल का PDF बनाने वाली लाइब्रेरी -->
+<script src="https://cloudflare.com"></script>
 <style>
 body{font-family:Arial;margin:0;background:#f2f2f7;padding:20px}
 .box{max-width:500px;margin:auto;background:white;padding:20px;border-radius:18px}
 h2{text-align:center}
 input,button{width:100%;padding:14px;margin:7px 0;box-sizing:border-box;border-radius:10px;font-size:16px}
 input{border:1px solid #ccc}
-button{border:0;background:#111;color:white}
-.item{padding:12px;margin-top:8px;background:#f1f1f1;border-radius:10px}
-.price{font-weight:bold;font-size:18px}
-.del{background:#d00;margin-top:5px}
+button{border:0;background:#111;color:white;cursor:pointer;font-weight:bold;}
+
+/* नया पीडीएफ डाउनलोड बटन */
+.btn-pdf{background:#28a745 !important; color:white; margin-bottom:12px;}
+
+/* 1. मॉडल बॉक्स को छोटा और आमने-सामने करने के लिए CSS */
+.item{
+ display:flex !important;
+ justify-content:space-between !important;
+ align-items:center !important;
+ padding:8px 12px !important;
+ margin-top:6px !important;
+ background:#f1f1f1;
+ border-radius:10px
+}
+.item-details{display:flex; flex-direction:column;}
+.model-text{font-size:15px; color:#111;}
+.price{font-weight:bold; font-size:14px; color:#333; margin-top:2px;}
+
+/* 2. छोटा और ठीक आगे लगा हुआ गोल 'X' डिलीट बटन */
+.del{
+ background:#d00 !important;
+ color:white !important;
+ width:28px !important;
+ height:28px !important;
+ border-radius:50% !important;
+ font-size:14px !important;
+ font-weight:bold !important;
+ display:flex !important;
+ align-items:center !important;
+ justify-content:center !important;
+ margin:0 !important;
+ padding:0 !important;
+}
 </style>
 </head>
 <body>
@@ -21,11 +53,16 @@ button{border:0;background:#111;color:white}
 <input id="model" placeholder="Model">
 <input id="price" type="number" placeholder="Purchase Price ₹">
 <button onclick="save()">Save / Update</button>
+
+<!-- नया पीडीएफ डाउनलोड बटन -->
+<button class="btn-pdf" onclick="downloadPDF()">Save PDF (Full Screenshot)</button>
+
 <input id="search" placeholder="Search Model" oninput="show()">
 <div id="list"></div>
 </div>
 
 <script>
+// आपका पुराना डेटा बिल्कुल सुरक्षित रहेगा क्योंकि Key का नाम वही "prices" है
 let data=JSON.parse(localStorage.getItem("prices")||"{}");
 
 function save(){
@@ -38,20 +75,44 @@ function save(){
  document.getElementById("price").value="";
  show();
 }
+
+// मॉडल लिस्ट को छोटे साइज और आमने-सामने रेंडर करने का नया लॉजिक
 function show(){
  let q=document.getElementById("search").value.trim().toUpperCase();
  let out="";
  Object.keys(data).filter(m=>m.includes(q)).forEach(m=>{
-  out+=`<div class="item"><b>${m}</b><br><span class="price">₹${data[m]}</span>
-  <button class="del" onclick="del('${m}')">Delete</button></div>`;
+  out+=`<div class="item">
+   <div class="item-details">
+    <b class="model-text">${m}</b>
+    <span class="price">₹${data[m]}</span>
+   </div>
+   <button class="del" onclick="del('${m}')">X</button>
+  </div>`;
  });
  document.getElementById("list").innerHTML=out;
 }
+
 function del(m){
  delete data[m];
  localStorage.setItem("prices",JSON.stringify(data));
  show();
 }
+
+// 🔥 अनलिमिटेड मॉडल का फुल स्क्रीनशॉट PDF बनाने का जादुई फंक्शन
+function downloadPDF() {
+ let element = document.getElementById('list');
+ if(Object.keys(data).length === 0) return alert("लिस्ट में कोई मॉडल नहीं है!");
+ 
+ let opt = {
+  margin: 10,
+  filename: 'Customer_Price_List.pdf',
+  image: { type: 'jpeg', quality: 0.98 },
+  html2canvas: { scale: 2, useCORS: true },
+  jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+ };
+ html2pdf().set(opt).from(element).save();
+}
+
 show();
 </script>
 </body>
