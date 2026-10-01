@@ -1,58 +1,136 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Purchase Price Finder</title>
-<style>
-body{font-family:Arial;margin:0;background:#f2f2f7;padding:20px}
-.box{max-width:500px;margin:auto;background:white;padding:20px;border-radius:18px}
-h2{text-align:center}
-input,button{width:100%;padding:14px;margin:7px 0;box-sizing:border-box;border-radius:10px;font-size:16px}
-input{border:1px solid #ccc}
-button{border:0;background:#111;color:white}
-.item{padding:12px;margin-top:8px;background:#f1f1f1;border-radius:10px}
-.price{font-weight:bold;font-size:18px}
-.del{background:#d00;margin-top:5px}
-</style>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Purchase Price Finder</title>
+    <style>
+        body{font-family:Arial;margin:0;background:#f2f2f2;padding:10px;}
+        .box{max-width:500px;margin:auto;background:white;padding:20px;border-radius:8px;box-shadow:0 2px 5px rgba(0,0,0,0.1);}
+        h2{text-align:center;margin-top:0;color:#333;}
+        input,button{width:100%;padding:14px;margin:7px 0;box-sizing:border-box;}
+        input{border:1px solid #ccc;border-radius:4px;}
+        button{border:0;background:#111;color:white;font-weight:bold;border-radius:4px;cursor:pointer;}
+        .btn-add{background:#007bff;}
+        .btn-share{background:#25D366;font-size:16px;margin-top:15px;}
+        .item{padding:12px;margin-top:8px;background:#f9f9f9;border:1px solid #eee;border-radius:4px;display:flex;justify-content:space-between;align-items:center;}
+        .price{font-weight:bold;font-size:18px;}
+        .del{background:#d00;color:white;border:0;padding:5px 10px;width:auto;margin:0;border-radius:4px;}
+        .flex-container{display:flex;gap:8px;}
+        .flex-container input[type="text"]{flex:2;}
+        .flex-container input[type="number"]{flex:1;}
+        table{width:100%;border-collapse:collapse;margin-top:15px;}
+        th,td{border:1px solid #ddd;padding:10px;text-align:left;}
+        th{background-color:#f2f2f2;}
+    </style>
 </head>
 <body>
+
 <div class="box">
-<h2>Purchase Price Finder</h2>
-<input id="model" placeholder="Model">
-<input id="price" type="number" placeholder="Purchase Price ₹">
-<button onclick="save()">Save / Update</button>
-<input id="search" placeholder="Search Model" oninput="show()">
-<div id="list"></div>
+    <h2>Purchase Price Finder</h2>
+    
+    <!-- आइटम इनपुट करने की जगह -->
+    <div class="flex-container">
+        <input id="model" placeholder="Model Name (उदा. iPhone 16)">
+        <input id="price" type="number" placeholder="Price (₹)">
+    </div>
+    
+    <!-- लिस्ट में जोड़ने का बटन -->
+    <button class="btn-add" onclick="addItem()">➕ लिस्ट में जोड़ें</button>
+    
+    <!-- लाइव आइटम्स की लिस्ट देखने के लिए टेबल -->
+    <table>
+        <thead>
+            <tr>
+                <th>मॉडल / आइटम</th>
+                <th>कीमत</th>
+                <th style="text-align:center;">हटाएं</th>
+            </tr>
+        </thead>
+        <tbody id="listBody">
+            <!-- यहाँ आइटम जुड़ेंगे -->
+        </tbody>
+    </table>
+
+    <!-- पूरी लिस्ट एक साथ फॉरवर्ड करने का बटन -->
+    <button class="btn-share" onclick="shareOnWhatsApp()">🟢 पूरी लिस्ट WhatsApp पर भेजें</button>
 </div>
 
 <script>
-let data=JSON.parse(localStorage.getItem("prices")||"{}");
+// आइटम्स स्टोर करने के लिए एरे
+let purchaseList = [];
 
-function save(){
- let m=document.getElementById("model").value.trim().toUpperCase();
- let p=document.getElementById("price").value.trim();
- if(!m||!p)return alert("Model aur price bharo");
- data[m]=p;
- localStorage.setItem("prices",JSON.stringify(data));
- document.getElementById("model").value="";
- document.getElementById("price").value="";
- show();
+// लिस्ट में नया आइटम जोड़ने का फंक्शन
+function addItem() {
+    const modelInput = document.getElementById('model');
+    const priceInput = document.getElementById('price');
+    
+    const modelName = modelInput.value.trim();
+    const itemPrice = priceInput.value.trim();
+
+    if (!modelName || !itemPrice) {
+        alert("कृपया मॉडल का नाम और कीमत दोनों टाइप करें!");
+        return;
+    }
+
+    // एरे में डेटा सेव करना
+    purchaseList.push({ name: modelName, price: parseFloat(itemPrice) });
+    
+    // स्क्रीन टेबल को अपडेट करना
+    updateTable();
+
+    // इनपुट बॉक्स खाली करना
+    modelInput.value = '';
+    priceInput.value = '';
 }
-function show(){
- let q=document.getElementById("search").value.trim().toUpperCase();
- let out="";
- Object.keys(data).filter(m=>m.includes(q)).forEach(m=>{
-  out+=`<div class="item"><b>${m}</b><br><span class="price">₹${data[m]}</span>
-  <button class="del" onclick="del('${m}')">Delete</button></div>`;
- });
- document.getElementById("list").innerHTML=out;
+
+// लिस्ट से कोई आइटम डिलीट करने का फंक्शन
+function deleteItem(index) {
+    purchaseList.splice(index, 1);
+    updateTable();
 }
-function del(m){
- delete data[m];
- localStorage.setItem("prices",JSON.stringify(data));
- show();
+
+// टेबल को री-रेंडर करने का फंक्शन
+function updateTable() {
+    const tbody = document.getElementById('listBody');
+    tbody.innerHTML = '';
+
+    purchaseList.forEach((item, index) => {
+        const row = `<tr>
+            <td><b>${item.name}</b></td>
+            <td class="price">₹${item.price.toLocaleString('en-IN')}</td>
+            <td style="text-align:center;">
+                <button class="del" onclick="deleteItem(${index})">❌</button>
+            </td>
+        </tr>`;
+        tbody.innerHTML += row;
+    });
 }
-show();
+
+// पूरी लिस्ट को फॉर्मेट करके एक साथ WhatsApp पर भेजने का फंक्शन
+function shareOnWhatsApp() {
+    if (purchaseList.length === 0) {
+        alert("आपकी लिस्ट खाली है! पहले कुछ आइटम जोड़ें।");
+        return;
+    }
+
+    let message = `📋 *परचेज प्राइस लिस्ट (Purchase Price List)*\n`;
+    message += `-----------------------------------\n`;
+
+    let total = 0;
+
+    purchaseList.forEach((item, index) => {
+        message += `${index + 1}. *${item.name}* - ₹${item.price.toLocaleString('en-IN')}\n`;
+        total += item.price;
+    });
+
+    message += `-----------------------------------\n`;
+    message += `💰 *कुल टोटल (Grand Total):* ₹${total.toLocaleString('en-IN')}\n\n`;
+    message += `_यह लिस्ट परचेज प्राइस फाइंडर ऐप से शेयर की गई है।_`;
+
+    const whatsappUrl = `https://whatsapp.com{encodeURIComponent(message)}`;
+    window.open(whatsappUrl, '_blank');
+}
 </script>
+
 </body>
 </html>
