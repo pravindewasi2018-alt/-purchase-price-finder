@@ -4,131 +4,93 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Purchase Price Finder</title>
     <style>
-        body{font-family:Arial;margin:0;background:#f2f2f2;padding:10px;}
-        .box{max-width:500px;margin:auto;background:white;padding:20px;border-radius:8px;box-shadow:0 2px 5px rgba(0,0,0,0.1);}
-        h2{text-align:center;margin-top:0;color:#333;}
-        input,button{width:100%;padding:14px;margin:7px 0;box-sizing:border-box;}
-        input{border:1px solid #ccc;border-radius:4px;}
-        button{border:0;background:#111;color:white;font-weight:bold;border-radius:4px;cursor:pointer;}
-        .btn-save{background:#111;}
-        .btn-share{background:#25D366;font-size:16px;margin-top:15px;}
-        .item{padding:12px;margin-top:8px;background:#f9f9f9;border:1px solid #eee;border-radius:4px;display:flex;justify-content:space-between;align-items:center;}
-        .price{font-weight:bold;font-size:18px;}
-        .del{background:#d00;color:white;border:0;padding:5px 10px;width:auto;margin:0;border-radius:4px;}
-        table{width:100%;border-collapse:collapse;margin-top:15px;font-size:14px;}
-        th,td{border:1px solid #ddd;padding:10px;text-align:left;}
-        th{background-color:#f2f2f2;}
-        .search-box{margin-top:15px;}
+        body{font-family:Arial;margin:0;background:#f2f2f2}
+        .box{max-width:500px;margin:auto;background:white;padding:20px}
+        h2{text-align:center}
+        input,button{width:100%;padding:14px;margin:7px 0;box-sizing:border-box}
+        input{border:1px solid #ccc}
+        button{border:0;background:#111;color:white}
+        .item{padding:12px;margin-top:8px;background:#f9f9f9;border:1px solid #eee}
+        .price{font-weight:bold;font-size:18px}
+        .del{background:#d00;margin-top:5px}
+        .btn-share{background:#25D366;font-size:16px;font-weight:bold;margin-top:15px;cursor:pointer}
     </style>
 </head>
 <body>
 
 <div class="box">
     <h2>Purchase Price Finder</h2>
-    
-    <!-- पुराना इनपुट सिस्टम (जिससे आपका पुराना डेटा कनेक्टेड है) -->
     <input id="model" placeholder="Model">
     <input id="price" type="number" placeholder="Purchase Price">
-    <button class="btn-save" onclick="save()">Save / Update</button>
+    <button onclick="save()">Save / Update</button>
+    <input id="search" placeholder="Search Model" onkeyup="searchModel()">
+    <div id="list"></div>
     
-    <!-- पुराना सर्च बॉक्स -->
-    <input id="search" class="search-box" placeholder="Search Model" onkeyup="searchModel()">
-    
-    <!-- लाइव और पुरानी आइटम लिस्ट देखने के लिए टेबल -->
-    <table>
-        <thead>
-            <tr>
-                <th>मॉडल / आइटम</th>
-                <th>कीमत</th>
-                <th style="text-align:center;">हटाएं</th>
-            </tr>
-        </thead>
-        <tbody id="listBody">
-            <!-- यहाँ पुराना और नया दोनों डेटा दिखेगा -->
-        </tbody>
-    </table>
-
-    <!-- पूरी लिस्ट एक साथ WhatsApp पर फॉरवर्ड करने का बटन -->
+    <!-- पूरी लिस्ट एक साथ WhatsApp पर भेजने का बटन -->
     <button class="btn-share" onclick="shareOnWhatsApp()">🟢 पूरी लिस्ट WhatsApp पर भेजें</button>
 </div>
 
 <script>
-// पेज लोड होते ही पुरानी लिस्ट को रिकवर करना
-let purchaseList = JSON.parse(localStorage.getItem('purchaseList')) || [];
+// आपकी पुरानी ऐप का ओरिजिनल लॉजिक
+var list = [];
+if(localStorage.getItem("list")!=null){
+    list = JSON.parse(localStorage.getItem("list"));
+    show();
+}
 
-// पुरानी लिस्ट को स्क्रीन पर दिखाना
-updateTable();
-
-// पुराना सेव फंक्शन (डेटा को लोकल स्टोरेज में सुरक्षित रखने के लिए)
-function save() {
-    const modelInput = document.getElementById('model');
-    const priceInput = document.getElementById('price');
-    
-    const modelName = modelInput.value.trim();
-    const itemPrice = priceInput.value.trim();
-
-    if (!modelName || !itemPrice) {
-        alert("Please enter both Model and Price!");
+function save(){
+    var m = document.getElementById("model").value.trim();
+    var p = document.getElementById("price").value.trim();
+    if(m=="" || p==""){
+        alert("Enter Model & Price");
         return;
     }
-
-    // चेक करें कि क्या मॉडल पहले से है (अपडेट करने के लिए)
-    const existingIndex = purchaseList.findIndex(item => item.name.toLowerCase() === modelName.toLowerCase());
-    
-    if (existingIndex > -1) {
-        purchaseList[existingIndex].price = parseFloat(itemPrice);
-    } else {
-        purchaseList.push({ name: modelName, price: parseFloat(itemPrice) });
-    }
-    
-    // लोकल स्टोरेज में सेव करें ताकि डेटा कभी गायब न हो
-    localStorage.setItem('purchaseList', JSON.stringify(purchaseList));
-    
-    updateTable();
-
-    // इनपुट फ़ील्ड साफ़ करें
-    modelInput.value = '';
-    priceInput.value = '';
-}
-
-// आइटम डिलीट करने का फंक्शन
-function deleteItem(index) {
-    purchaseList.splice(index, 1);
-    localStorage.setItem('purchaseList', JSON.stringify(purchaseList));
-    updateTable();
-}
-
-// टेबल अपडेट करने का फंक्शन
-function updateTable(filterText = '') {
-    const tbody = document.getElementById('listBody');
-    tbody.innerHTML = '';
-
-    purchaseList.forEach((item, index) => {
-        // सर्च फ़िल्टर लागू करना
-        if (filterText && !item.name.toLowerCase().includes(filterText.toLowerCase())) {
-            return;
+    var f = 0;
+    for(var i=0; i<list.length; i++){
+        if(list[i].model.toLowerCase() == m.toLowerCase()){
+            list[i].price = p;
+            f = 1;
         }
-
-        const row = `<tr>
-            <td><b>${item.name}</b></td>
-            <td class="price">₹${item.price.toLocaleString('en-IN')}</td>
-            <td style="text-align:center;">
-                <button class="del" onclick="deleteItem(${index})">❌</button>
-            </td>
-        </tr>`;
-        tbody.innerHTML += row;
-    });
+    }
+    if(f==0){
+        list.push({model:m, price:p});
+    }
+    localStorage.setItem("list", JSON.stringify(list));
+    show();
+    document.getElementById("model").value = "";
+    document.getElementById("price").value = "";
 }
 
-// पुराना सर्च फंक्शन
-function searchModel() {
-    const searchText = document.getElementById('search').value;
-    updateTable(searchText);
+function show(){
+    var h = "";
+    for(var i=list.length-1; i>=0; i--){
+        h += "<div class='item'><b>"+list[i].model+"</b><br><span class='price'>₹"+parseFloat(list[i].price).toLocaleString('en-IN')+"</span><br><button class='del' onclick='del("+i+")'>Delete</button></div>";
+    }
+    document.getElementById("list").innerHTML = h;
 }
 
-// पूरी लिस्ट को एक साथ WhatsApp पर भेजने का नया फीचर
+function del(i){
+    if(confirm("Delete this item?")){
+        list.splice(i,1);
+        localStorage.setItem("list", JSON.stringify(list));
+        show();
+    }
+}
+
+function searchModel(){
+    var s = document.getElementById("search").value.toLowerCase();
+    var h = "";
+    for(var i=list.length-1; i>=0; i--){
+        if(list[i].model.toLowerCase().includes(s)){
+            h += "<div class='item'><b>"+list[i].model+"</b><br><span class='price'>₹"+parseFloat(list[i].price).toLocaleString('en-IN')+"</span><br><button class='del' onclick='del("+i+")'>Delete</button></div>";
+        }
+    }
+    document.getElementById("list").innerHTML = h;
+}
+
+// पूरी लिस्ट को WhatsApp पर फॉरवर्ड करने का नया फंक्शन
 function shareOnWhatsApp() {
-    if (purchaseList.length === 0) {
+    if (list.length === 0) {
         alert("आपकी लिस्ट खाली है!");
         return;
     }
@@ -138,9 +100,10 @@ function shareOnWhatsApp() {
 
     let total = 0;
 
-    purchaseList.forEach((item, index) => {
-        message += `${index + 1}. *${item.name}* - ₹${item.price.toLocaleString('en-IN')}\n`;
-        total += item.price;
+    // ओरिजिनल लिस्ट एरे से डेटा लेकर मैसेज फॉर्मेट करना
+    list.forEach((item, index) => {
+        message += `${index + 1}. *${item.model}* - ₹${parseFloat(item.price).toLocaleString('en-IN')}\n`;
+        total += parseFloat(item.price);
     });
 
     message += `-----------------------------------\n`;
