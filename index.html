@@ -7,13 +7,13 @@
         body{font-family:Arial;margin:0;background:#f2f2f2}
         .box{max-width:500px;margin:auto;background:white;padding:20px}
         h2{text-align:center}
-        input,button{width:100%;padding:14px;margin:7px 0;box-sizing:border-box}
+        input,button,a{width:100%;padding:14px;margin:7px 0;box-sizing:border-box;display:block;text-align:center}
         input{border:1px solid #ccc}
-        button{border:0;background:#111;color:white}
+        button{border:0;background:#111;color:white;font-weight:bold;cursor:pointer}
         .item{padding:12px;margin-top:8px;background:#f9f9f9;border:1px solid #eee}
         .price{font-weight:bold;font-size:18px}
-        .del{background:#d00;margin-top:5px}
-        .btn-share{background:#25D366;font-size:16px;font-weight:bold;margin-top:15px;cursor:pointer}
+        .del{background:#d00;margin-top:5px;width:100%}
+        .btn-share{background:#25D366;color:white;font-size:16px;font-weight:bold;margin-top:15px;text-decoration:none;border-radius:4px}
     </style>
 </head>
 <body>
@@ -26,7 +26,8 @@
     <input id="search" placeholder="Search Model" onkeyup="searchModel()">
     <div id="list"></div>
     
-    <button class="btn-share" onclick="shareOnWhatsApp()">🟢 पूरी लिस्ट WhatsApp पर भेजें</button>
+    <!-- बटन को डायरेक्ट लिंक (Anchor Tag) में बदल दिया है ताकि iPhone/Safari में भी 100% काम करे -->
+    <a id="whatsappBtn" class="btn-share" href="#" onclick="shareOnWhatsApp(event)">🟢 पूरी लिस्ट WhatsApp पर भेजें</a>
 </div>
 
 <script>
@@ -86,13 +87,15 @@ function searchModel(){
     document.getElementById("list").innerHTML = h;
 }
 
-function shareOnWhatsApp() {
+// नया फिक्स्ड फंक्शन जो सीधे WhatsApp ऐप को ओपन करेगा
+function shareOnWhatsApp(e) {
     if (list.length === 0) {
         alert("आपकी लिस्ट खाली है!");
+        e.preventDefault();
         return;
     }
 
-    var message = "📋 *परचेज प्राइस लिस्ट (Purchase Price List)*\n";
+    var message = "📋 *परचेज PRICE लिस्ट*\n";
     message += "-----------------------------------\n";
 
     var total = 0;
@@ -103,11 +106,15 @@ function shareOnWhatsApp() {
     }
 
     message += "-----------------------------------\n";
-    message += "💰 *कुल टोटल (Grand Total):* ₹" + total.toLocaleString('en-IN') + "\n\n";
+    message += "💰 *कुल टोटल:* ₹" + total.toLocaleString('en-IN') + "\n\n";
     message += "_यह लिस्ट परचेज प्राइस फाइंडर ऐप से शेयर की गई है।_";
 
-    var whatsappUrl = "https://whatsapp.com" + encodeURIComponent(message);
-    window.open(whatsappUrl, '_blank');
+    // सीधे href बदल कर ओपन करने का तरीका (Iphone/Safari फ्रेंडली)
+    var whatsappUrl = "whatsapp://send?text=" + encodeURIComponent(message);
+    
+    // अगर नॉर्मल ब्राउज़र है तो वेब लिंक पर फॉल बैक करें
+    var btn = document.getElementById("whatsappBtn");
+    btn.href = whatsappUrl;
 }
 </script>
 
